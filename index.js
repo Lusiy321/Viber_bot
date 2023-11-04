@@ -2,8 +2,8 @@
 
 require("dotenv").config();
 const ViberBot = require("viber-bot").Bot;
+const Keyboard = require("viber-bot").Keyboard;
 const BotEvents = require("viber-bot").Events;
-const fs = require("node:fs");
 const TextMessage = require("viber-bot").Message.Text;
 const UrlMessage = require("viber-bot").Message.Url;
 const ContactMessage = require("viber-bot").Message.Contact;
@@ -33,7 +33,6 @@ async function checkUrlAvailability(botResponse, text_received) {
     }
 
     if (text_received === "text") {
-      message = new TextMessage("hello world");
     } else if (text_received === "url") {
       let url = "https://google.com";
       message = new UrlMessage(url);
@@ -158,6 +157,7 @@ async function checkUrlAvailability(botResponse, text_received) {
   }
 
   await botResponse.send(message);
+
   console.log(text_received);
 }
 
@@ -175,6 +175,12 @@ bot.onSubscribe(async (response) => {
   );
 });
 
+bot.onSubscribe(async (response) =>
+  bot
+    .getUserDetails(response.userProfile)
+    .then((userDetails) => console.log(userDetails))
+);
+
 // Perfect! Now here's the key part:
 bot.on(BotEvents.MESSAGE_RECEIVED, async (message, response) => {
   // This sample bot can answer only text messages, let's make sure the user is aware of that.
@@ -187,10 +193,11 @@ bot.on(BotEvents.MESSAGE_RECEIVED, async (message, response) => {
   }
 });
 
-bot.onTextMessage(/Hi/, async (message, response) => {
+bot.onTextMessage(/./, async (message, response) => {
   try {
+    console.log(message);
     say(response, `Натисніть "Підписатися" щоб отримувати сповіщення`);
-    // await checkUrlAvailability(response, message.text);
+    await checkUrlAvailability(response, message.text);
     const SAMPLE_KEYBOARD = {
       Type: "keyboard",
       Revision: 1,
@@ -232,6 +239,24 @@ bot.onTextMessage(/Hi/, async (message, response) => {
   }
 });
 
+// bot.onTextMessage(/^запросить номер телефона$/i, (message, response) => {
+//   const key = new Keyboard(false, true).addRequestPhoneNumberButton(
+//     "Поделиться номером телефона",
+//     "Запросить номер телефона",
+//     6,
+//     1
+//   );
+
+//   response.send("Нажмите кнопку, чтобы поделиться номером телефона", key);
+// });
+
+// bot.on(BotEvents.MESSAGE_RECEIVED, (message, response) => {
+//   if (message instanceof ViberBot.Message.Contact) {
+//     const phoneNumber = message.contact.phone_number;
+//     response.send(`Вы поделились номером телефона: ${phoneNumber}`);
+//   }
+// });
+
 bot.onTextMessage(/./, async (msg, res) => {
   if (msg.text === "Підписатися") {
     say(
@@ -242,21 +267,21 @@ bot.onTextMessage(/./, async (msg, res) => {
   }
 });
 
-bot.onTextMessage(/./, async (msg, res) => {
-  const phonePattern =
-    /^[+]?\d{1,3}[-.\s]?\(?\d{1,4}\)?[-.\s]?\d{1,4}[-.\s]?\d{1,9}$/;
-  if (msg.text.match(phonePattern)) {
-    // "phone" является номером телефона, можно сохранить его или выполнить другие действия
-    console.log(
-      `Пользователь ${res.userProfile.name} предоставил номер телефона: ${msg.text}`
-    );
-  } else {
-    // "phone" не является номером телефона
-    console.log(
-      `Пользователь ${res.userProfile.name} предоставил некорректный номер телефона: ${msg.text}`
-    );
-  }
-});
+// bot.onTextMessage(/./, async (msg, res) => {
+//   const phonePattern =
+//     /^[+]?\d{1,3}[-.\s]?\(?\d{1,4}\)?[-.\s]?\d{1,4}[-.\s]?\d{1,9}$/;
+//   if (msg.text.match(phonePattern)) {
+//     // "phone" является номером телефона, можно сохранить его или выполнить другие действия
+//     console.log(
+//       `Пользователь ${res.userProfile.name} предоставил номер телефона: ${msg.text}`
+//     );
+//   } else {
+//     // "phone" не является номером телефона
+//     console.log(
+//       `Пользователь ${res.userProfile.name} предоставил некорректный номер телефона: ${msg.text}`
+//     );
+//   }
+// });
 
 bot
   .getBotProfile()
